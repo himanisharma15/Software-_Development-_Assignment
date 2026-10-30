@@ -1,0 +1,21 @@
+{
+  "name": "email-job-scheduler-monorepo",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace backend",
+    "dev:worker": "npm run dev:worker --workspace backend",
+    "dev:all": "concurrently \"npm run dev --workspace backend\" \"npm run dev:worker --workspace backend\" \"npm run dev --workspace frontend\"",
+    "build": "npm run build --workspace backend && npm run build --workspace frontend",
+    "start": "npm run start --workspace backend",
+    "migrate": "npm run migrate --workspace backend",
+    "reindex": "npm run reindex --workspace backend",
+    "start:worker": "npm run start:worker --workspace backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1"
+  }
+}
