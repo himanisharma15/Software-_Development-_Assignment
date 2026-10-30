@@ -5,7 +5,11 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import api from '../api/client';
 
-const API_BASE_URL = (api.defaults.baseURL ?? '').replace(/\/$/, '');
+const API_BASE_URL = (api.defaults.baseURL ?? 'http://localhost:4000/api')
+  .replace(/\/+$/, '')
+  .replace(/\/api$/, '');
+
+const GOOGLE_AUTH_URL = `${API_BASE_URL}/api/auth/google`;
 
 export default function LoginPage() {
   const { isAuthenticated } = useAuth();
@@ -18,11 +22,13 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <section className="w-full max-w-[340px] rounded-control border border-border bg-surface-raised p-5 shadow-panel sm:p-6">
         <div className="mb-5 text-center">
-          <h1 className="text-xl font-semibold text-text">Login</h1>
+          <h1 className="text-xl font-semibold text-text">
+            Login
+          </h1>
         </div>
 
         <a
-          href={`${API_BASE_URL}/api/auth/google`}
+          href={GOOGLE_AUTH_URL}
           className="flex min-h-9 w-full items-center justify-center gap-2 rounded-control border border-transparent bg-primary-tint px-3 text-xs font-semibold text-text transition hover:bg-primary-tint focus-visible:shadow-focus"
         >
           <svg
@@ -35,6 +41,7 @@ export default function LoginPage() {
             <path fill="#1976D2" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8l6.8-5.3Z" />
             <path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12Z" />
           </svg>
+
           Login with Google
         </a>
 
