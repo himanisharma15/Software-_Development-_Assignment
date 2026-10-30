@@ -1,3 +1,4 @@
+
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -24,6 +25,7 @@ import { logger } from './lib/logger.js';
 
 const app = express();
 const serverAdapter = new ExpressAdapter();
+
 serverAdapter.setBasePath('/admin/queues');
 
 const bullBoardQueues: any[] = [new BullMQAdapter(emailQueue as any)];
@@ -33,8 +35,26 @@ createBullBoard({
   serverAdapter
 });
 
+const allowedOrigins = [
+  env.FRONTEND_URL?.replace(/\/$/, ''),
+  'https://software-development-assignment.vercel.app'
+].filter(Boolean);
+
 app.use(helmet());
-app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -49,7 +69,10 @@ app.use('/api/senders', requireAuth, sendersRoutes);
 app.use('/api/slack', slackRoutes);
 
 app.use('/admin/queues', (req, res, next) => {
-  const expected = 'Basic ' + Buffer.from(`${env.BULL_BOARD_USER}:${env.BULL_BOARD_PASS}`).toString('base64');
+  const expected = 'Basic ' + Buffer.from(
+    `${env.BULL_BOARD_USER}:${env.BULL_BOARD_PASS}`
+  ).toString('base64');
+
   const header = req.headers.authorization ?? '';
 
   if (header !== expected) {
@@ -70,11 +93,13 @@ async function startServer() {
   await ensureEmailsIndex();
 
   const firstUser = await prisma.user.findFirst();
+
   if (firstUser) {
     await ensureSendersSeeded(firstUser.id);
   }
 
   await reconcileScheduledJobs();
+
   httpServer = app.listen(env.PORT, () => {
     logger.info({ port: env.PORT }, 'API server started');
   });
@@ -85,6 +110,7 @@ function shutdown() {
 
   shutdownPromise = (async () => {
     logger.info('Shutting down server');
+
     if (httpServer?.listening) {
       await new Promise<void>((resolve, reject) => {
         httpServer?.close((error) => {
@@ -100,6 +126,7 @@ function shutdown() {
     await closeQueue();
     await prisma.$disconnect();
     await redis.quit();
+
     process.exit(0);
   })();
 
