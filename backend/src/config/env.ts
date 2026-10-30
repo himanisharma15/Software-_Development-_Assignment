@@ -15,6 +15,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   REDIS_URL: z.string().min(1),
   ELASTICSEARCH_URL: z.string().default('http://localhost:9200'),
+  ELASTICSEARCH_API_KEY: z.string().optional(),
   JWT_SECRET: z.string().default('dev-secret'),
   GOOGLE_CLIENT_ID: z.string().optional().or(z.literal('')),
   GOOGLE_CLIENT_SECRET: z.string().optional().or(z.literal('')),
