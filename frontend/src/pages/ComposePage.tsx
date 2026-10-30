@@ -126,30 +126,33 @@ export default function ComposePage() {
 
   return (
     <DashboardLayout user={user} slackStatus={slackStatus.data} search="" onSearch={() => undefined} onLogout={logoutNow}>
+      <div className="mx-auto w-full max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-        <Link to="/dashboard" className="text-sm font-semibold text-text hover:text-primary">← Compose New Email</Link>
+        <div>
+          <Link to="/dashboard" className="text-xs font-medium text-muted hover:text-primary">← Back to emails</Link>
+          <h1 className="mt-1 text-xl font-semibold text-text">Compose new email</h1>
+        </div>
         <div className="flex items-center gap-1.5">
           <button type="button" aria-label="Upload recipient list" title="Upload List" onClick={() => fileInput.current?.click()} className="flex h-9 w-9 items-center justify-center rounded-control text-muted hover:bg-surface hover:text-primary">
             <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none"><path d="m8.5 12.5 6.8-6.8a3.1 3.1 0 0 1 4.4 4.4l-8.8 8.8a5 5 0 0 1-7.1-7.1l8.5-8.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </button>
-          <button type="button" aria-label="Choose send later time" title="Send Later" onClick={() => setLaterOpen(true)} className="flex h-9 w-9 items-center justify-center rounded-control text-muted hover:bg-surface hover:text-primary">
-            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
           </button>
           <Button variant="outline-primary" className="rounded-pill px-5" disabled={scheduleMutation.isPending || parseMutation.isPending} onClick={createScheduleNow}>{scheduleMutation.isPending ? <Spinner size="sm" label="Sending" /> : null}Send</Button>
           <Button variant="outline-primary" className="rounded-pill px-4" disabled={scheduleMutation.isPending || parseMutation.isPending} onClick={() => setLaterOpen(true)}>Send Later</Button>
         </div>
       </div>
 
-      <section className="w-full bg-background">
+      {error && <p role="alert" className="mb-3 rounded-control border border-danger/20 bg-danger-tint px-4 py-3 text-sm text-danger">{error}</p>}
+
+      <section className="w-full overflow-hidden rounded-panel border border-border bg-background shadow-panel">
         <div className="grid gap-0 divide-y divide-border border-y border-border">
-          <label className="grid gap-2 py-3 sm:grid-cols-[100px_1fr] sm:items-center">
+          <label className="grid gap-2 px-4 py-3 sm:grid-cols-[100px_1fr] sm:items-center">
             <span className="text-sm font-medium text-muted">From</span>
             <select aria-label="From sender" value={selectedSender || sendersQuery.data?.[0]?.id || ''} onChange={(event) => setSelectedSender(event.target.value)} className="min-h-9 w-fit max-w-full rounded-control border border-border bg-surface px-3 text-xs text-text focus:border-primary focus:outline-none focus:shadow-focus">
               {(sendersQuery.data ?? []).map((sender) => <option key={sender.id} value={sender.id}>{sender.email}</option>)}
             </select>
           </label>
 
-          <div className="grid gap-3 py-3 sm:grid-cols-[100px_1fr] sm:items-start">
+          <div className="grid gap-3 px-4 py-3 sm:grid-cols-[100px_1fr] sm:items-start">
             <span className="pt-2 text-sm font-medium text-muted">To</span>
             <div className="flex min-h-10 flex-wrap items-center gap-2">
               {emails.slice(0, 8).map((email) => <Chip key={email}>{email}</Chip>)}
@@ -162,18 +165,18 @@ export default function ComposePage() {
             </div>
           </div>
 
-          <label className="grid gap-2 py-3 sm:grid-cols-[100px_1fr] sm:items-center">
+          <label className="grid gap-2 px-4 py-3 sm:grid-cols-[100px_1fr] sm:items-center">
             <span className="text-sm font-medium text-muted">Subject</span>
-            <input value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Add a subject" className="min-h-10 border-0 bg-transparent text-sm font-semibold text-text placeholder:font-normal placeholder:text-muted focus:outline-none" />
+            <input value={subject} onChange={(event) => setSubject(event.target.value)} placeholder="Add a subject" aria-invalid={Boolean(error && !subject.trim())} className={`min-h-10 border-0 bg-transparent text-sm font-semibold text-text placeholder:font-normal placeholder:text-muted focus:outline-none ${error && !subject.trim() ? 'placeholder:text-danger' : ''}`} />
           </label>
         </div>
 
-        <div className="flex flex-wrap gap-5 border-b border-border py-3 sm:gap-8">
-          <Input label="Delay between 2 emails" name="delayBetweenMs" type="number" min="0" value={delayBetweenMs} onChange={(event) => setDelayBetweenMs(Number(event.target.value))} className="min-h-8 w-20 px-2 py-1 text-xs" />
-          <Input label="Hourly Limit" name="hourlyLimit" type="number" min="1" value={hourlyLimit} onChange={(event) => setHourlyLimit(Number(event.target.value))} className="min-h-8 w-20 px-2 py-1 text-xs" />
+        <div className="flex flex-wrap gap-5 border-b border-border bg-surface/50 px-4 py-4 sm:gap-8">
+          <Input label="Delay between emails (ms)" name="delayBetweenMs" type="number" min="0" value={delayBetweenMs} onChange={(event) => setDelayBetweenMs(Number(event.target.value))} className="min-h-9 w-full px-3 py-2 text-sm sm:w-40" />
+          <Input label="Hourly limit" name="hourlyLimit" type="number" min="1" value={hourlyLimit} onChange={(event) => setHourlyLimit(Number(event.target.value))} className="min-h-9 w-full px-3 py-2 text-sm sm:w-40" />
         </div>
 
-        <div className="mt-3">
+        <div className="p-4">
           <div className="flex flex-wrap items-center gap-1 rounded-t-control border border-border bg-surface px-3 py-1.5" role="toolbar" aria-label="Message formatting">
             <button type="button" aria-label="Bold selected text" className="rounded-control px-2.5 py-1.5 text-sm font-bold text-muted hover:bg-primary-tint hover:text-primary" onClick={() => formatSelection('**')}>B</button>
             <button type="button" aria-label="Italic selected text" className="rounded-control px-2.5 py-1.5 text-sm italic text-muted hover:bg-primary-tint hover:text-primary" onClick={() => formatSelection('_')}>I</button>
@@ -181,12 +184,12 @@ export default function ComposePage() {
             <span className="mx-2 h-5 w-px bg-border" />
             <button type="button" aria-label="Insert bullet" className="rounded-control px-2.5 py-1.5 text-sm text-muted hover:bg-primary-tint hover:text-primary" onClick={() => setBody((current) => `${current}${current.endsWith('\n') || !current ? '' : '\n'}• `)}>List</button>
           </div>
-          <Textarea ref={bodyInput} label="Message body" name="messageBody" value={body} onChange={(event) => setBody(event.target.value)} rows={13} placeholder="Type Your Reply…" className="min-h-[280px] rounded-t-none border border-t-0 border-border bg-surface px-4 py-4 focus:shadow-none" />
+          <Textarea ref={bodyInput} label="Message body" name="messageBody" value={body} onChange={(event) => setBody(event.target.value)} rows={13} placeholder="Write your message..." className="min-h-[320px] rounded-t-none border border-t-0 border-border bg-background px-4 py-4 focus:border-border focus:shadow-none" />
         </div>
       </section>
 
-      {selectedSenderEmail && <p className="mt-3 text-xs text-muted">Sender accounts are scheduled using the existing rotation policy.</p>}
-      {error && <p role="alert" className="mt-4 rounded-control border border-danger/20 bg-danger-tint px-4 py-3 text-sm text-danger">{error}</p>}
+      {selectedSenderEmail && <p className="mt-3 px-1 text-xs text-muted">Sender accounts are scheduled using the existing rotation policy.</p>}
+      </div>
 
       <Popover open={laterOpen} onClose={() => setLaterOpen(false)} className="max-w-md">
         <h2 className="text-lg font-semibold text-text">Send later</h2>
