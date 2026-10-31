@@ -5,11 +5,12 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import api from '../api/client';
 
-const API_BASE_URL = (api.defaults.baseURL ?? 'http://localhost:4000/api')
-  .replace(/\/+$/, '')
-  .replace(/\/api$/, '');
+const API_BASE_URL = api.defaults.baseURL ?? '/api';
 
-const GOOGLE_AUTH_URL = `${API_BASE_URL}/api/auth/google`;
+const GOOGLE_AUTH_URL = API_BASE_URL.startsWith('http')
+  ? `${API_BASE_URL.replace(/\/+$/, '')}/auth/google`
+  : '/api/auth/google';
+
 
 export default function LoginPage() {
   const { isAuthenticated } = useAuth();
