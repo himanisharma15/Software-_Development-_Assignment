@@ -81,11 +81,21 @@ VITE_API_URL=http://localhost:4000/api
 2. Create OAuth 2.0 client credentials.
 3. Add an authorized redirect URI:
    - `http://localhost:4000/api/auth/google/callback`
+   - Production: `https://software-development-assignment.vercel.app/api/auth/google/callback`
 4. Set the values in `backend/.env`:
    - `GOOGLE_CLIENT_ID`
    - `GOOGLE_CLIENT_SECRET`
    - `GOOGLE_CALLBACK_URL=http://localhost:4000/api/auth/google/callback`
 5. Log in through the button on the frontend; the backend sets the JWT cookie and redirects to `/dashboard`.
+
+For production, configure these backend environment values on Render:
+
+```bash
+FRONTEND_URL=https://software-development-assignment.vercel.app
+GOOGLE_CALLBACK_URL=https://software-development-assignment.vercel.app/api/auth/google/callback
+```
+
+The production frontend sends API requests through Vercel's `/api` rewrite so the session cookie stays first-party.
 
 ## Slack app setup
 
