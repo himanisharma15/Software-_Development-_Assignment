@@ -109,6 +109,7 @@ router.post(
       const subject = String(body.subject ?? '').trim();
       const content = String(body.body ?? '').trim();
       const requestedSenderId = String(body.senderId ?? '').trim();
+      const sendNow = body.sendNow === 'true';
 
       if (!subject || !content) {
         return res.status(400).json({
@@ -168,6 +169,10 @@ router.post(
       }
 
       const now = Date.now();
+      const selectedSender = requestedSenderId
+        ? senders.find((sender) => sender.id === requestedSenderId)!
+        : null;
+      const recordAsDemoSent = sendNow && selectedSender?.smtpHost === 'smtp.ethereal.email';
 
       const rows: Array<any> = [];
 
@@ -200,7 +205,9 @@ router.post(
           subject,
           body: content,
           scheduledAt,
-          status: 'scheduled',
+          sentAt: recordAsDemoSent ? new Date(now) : null,
+          status: recordAsDemoSent ? 'sent' : 'scheduled',
+          messageId: recordAsDemoSent ? `simulated:${emailId}` : null,
           jobId: emailId,
           createdAt: new Date(),
           updatedAt: new Date(),
@@ -215,6 +222,11 @@ router.post(
 
       // Add emails to BullMQ queue
       for (const row of rows) {
+        if (recordAsDemoSent) {
+          await updateElasticEmail(row.id);
+          continue;
+        }
+
         const scheduledAtMs = new Date(row.scheduledAt).getTime();
         const delay = Math.max(0, scheduledAtMs - Date.now());
 
@@ -254,7 +266,9 @@ router.post(
 
       return res.status(201).json({
         success: true,
-        message: 'Emails scheduled successfully',
+        message: recordAsDemoSent
+          ? 'Email recorded in Sent (demo mode; no external email delivered).'
+          : 'Emails scheduled successfully',
         count: rows.length,
         emails: uniqueLeads
       });

@@ -86,13 +86,14 @@ export default function ComposePage() {
       formData.append('startTime', scheduledDate.toISOString());
       formData.append('delayBetweenMs', String(delayBetweenMs));
       formData.append('hourlyLimit', String(hourlyLimit));
+      if (sendNow) formData.append('sendNow', 'true');
       const senderId = selectedSender || sendersQuery.data?.[0]?.id;
       if (senderId) formData.append('senderId', senderId);
       formData.append('file', file);
       return (await api.post<{ message?: string }>('/emails/schedule', formData)).data;
     },
     onSuccess: (data, variables) => {
-      toast.success(variables.sendNow ? 'Email queued; it will appear in Sent shortly.' : data.message ?? 'Emails scheduled successfully');
+      toast.success(data.message ?? (variables.sendNow ? 'Email recorded in Sent.' : 'Emails scheduled successfully'));
       void queryClient.invalidateQueries({ queryKey: ['emails'] });
       navigate(`/dashboard?view=${variables.sendNow ? 'sent' : 'scheduled'}`);
     },
