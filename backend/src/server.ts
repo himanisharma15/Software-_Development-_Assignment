@@ -4,6 +4,8 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 import http from 'node:http';
+import { spawn, type ChildProcess } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { createBullBoard } from '@bull-board/api';
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter.js';
 import { ExpressAdapter } from '@bull-board/express';
@@ -87,6 +89,29 @@ app.use(errorHandler);
 
 let httpServer: http.Server | undefined;
 let shutdownPromise: Promise<void> | undefined;
+let emailWorker: ChildProcess | undefined;
+
+function startEmailWorker() {
+  if (process.env.NODE_ENV !== 'production' && process.env.RENDER !== 'true') return;
+
+  emailWorker = spawn(
+    process.execPath,
+    [fileURLToPath(new URL('./worker.js', import.meta.url))],
+    { stdio: 'inherit' }
+  );
+
+  emailWorker.on('error', (error) => {
+    logger.error({ err: error }, 'Failed to start email worker');
+    process.exit(1);
+  });
+
+  emailWorker.on('exit', (code, signal) => {
+    if (!shutdownPromise) {
+      logger.error({ code, signal }, 'Email worker exited unexpectedly');
+      process.exit(1);
+    }
+  });
+}
 
 async function startServer() {
   await initElastic();
@@ -99,6 +124,7 @@ async function startServer() {
   }
 
   await reconcileScheduledJobs();
+  startEmailWorker();
 
   httpServer = app.listen(env.PORT, () => {
     logger.info({ port: env.PORT }, 'API server started');
@@ -110,6 +136,13 @@ function shutdown() {
 
   shutdownPromise = (async () => {
     logger.info('Shutting down server');
+
+    if (emailWorker && emailWorker.exitCode === null && emailWorker.signalCode === null) {
+      await new Promise<void>((resolve) => {
+        emailWorker?.once('exit', () => resolve());
+        emailWorker?.kill('SIGTERM');
+      });
+    }
 
     if (httpServer?.listening) {
       await new Promise<void>((resolve, reject) => {
