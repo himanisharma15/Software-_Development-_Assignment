@@ -108,6 +108,7 @@ router.post(
       // Validate subject and body
       const subject = String(body.subject ?? '').trim();
       const content = String(body.body ?? '').trim();
+      const requestedSenderId = String(body.senderId ?? '').trim();
 
       if (!subject || !content) {
         return res.status(400).json({
@@ -155,6 +156,10 @@ router.post(
         senders = await getUserSenders(userId);
       }
 
+      if (requestedSenderId && !senders.some((sender) => sender.id === requestedSenderId)) {
+        return res.status(400).json({ message: 'Selected sender is not available for this account.' });
+      }
+
       if (!senders || senders.length === 0) {
         return res.status(400).json({
           message:
@@ -174,8 +179,9 @@ router.post(
       ) {
         const emailAddress = uniqueLeads[index];
 
-        const sender =
-          senders[index % senders.length];
+        const sender = requestedSenderId
+          ? senders.find((candidate) => candidate.id === requestedSenderId)!
+          : senders[index % senders.length];
 
         const scheduledAt = new Date(
           Math.max(

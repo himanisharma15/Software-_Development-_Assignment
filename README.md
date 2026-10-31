@@ -58,6 +58,7 @@ Key values:
 - `REDIS_URL=redis://localhost:6379`
 - `ELASTICSEARCH_URL=http://localhost:9200`
 - `JWT_SECRET=<strong random secret>`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM` for real email delivery
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`
 - `SLACK_CLIENT_ID` / `SLACK_CLIENT_SECRET`
 - `WORKER_CONCURRENCY=4`
@@ -112,6 +113,8 @@ The production frontend sends API requests through Vercel's `/api` rewrite so th
 ## Ethereal Email setup
 
 This app seeds Ethereal SMTP test accounts at startup and stores them in Postgres so outbound jobs can be sent through disposable test accounts. The app supports multiple accounts and round-robins across configured senders.
+
+For real Gmail delivery, configure the backend environment with `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=587`, `SMTP_USER=<your Gmail address>`, `SMTP_PASS=<Google app password>`, and `SMTP_FROM=<your Gmail address>`. Create an app password in the Google account security settings and add these values to Render's environment settings; do not commit credentials. With these values set, the app uses that configured sender instead of Ethereal test accounts.
 
 ## Architecture and scheduling flow
 

@@ -86,6 +86,8 @@ export default function ComposePage() {
       formData.append('startTime', scheduledDate.toISOString());
       formData.append('delayBetweenMs', String(delayBetweenMs));
       formData.append('hourlyLimit', String(hourlyLimit));
+      const senderId = selectedSender || sendersQuery.data?.[0]?.id;
+      if (senderId) formData.append('senderId', senderId);
       formData.append('file', file);
       return (await api.post<{ message?: string }>('/emails/schedule', formData)).data;
     },
@@ -188,7 +190,7 @@ export default function ComposePage() {
         </div>
       </section>
 
-      {selectedSenderEmail && <p className="mt-3 px-1 text-xs text-muted">Sender accounts are scheduled using the existing rotation policy.</p>}
+      {selectedSenderEmail && <p className="mt-3 px-1 text-xs text-muted">{selectedSenderEmail.endsWith('@ethereal.email') ? 'Ethereal is test-only and does not deliver to real inboxes.' : 'The selected SMTP sender will be used for this campaign.'}</p>}
       </div>
 
       <Popover open={laterOpen} onClose={() => setLaterOpen(false)} className="max-w-md">

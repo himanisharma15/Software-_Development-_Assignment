@@ -17,6 +17,17 @@ const envSchema = z.object({
   ELASTICSEARCH_URL: z.string().default('http://localhost:9200'),
   ELASTICSEARCH_API_KEY: z.string().optional(),
   JWT_SECRET: z.string().default('dev-secret'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.preprocess(
+    (value) => value === '' ? undefined : value,
+    z.coerce.number().int().positive().optional()
+  ),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.preprocess(
+    (value) => value === '' ? undefined : value,
+    z.string().email().optional()
+  ),
   GOOGLE_CLIENT_ID: z.string().optional().or(z.literal('')),
   GOOGLE_CLIENT_SECRET: z.string().optional().or(z.literal('')),
   GOOGLE_CALLBACK_URL: z.string().default('http://localhost:4000/api/auth/google/callback'),
@@ -30,6 +41,14 @@ const envSchema = z.object({
   SENDER_COUNT: z.coerce.number().default(3),
   BULL_BOARD_USER: z.string().default('admin'),
   BULL_BOARD_PASS: z.string().default('admin')
+}).superRefine((values, context) => {
+  const smtpValues = [values.SMTP_HOST, values.SMTP_PORT, values.SMTP_USER, values.SMTP_PASS, values.SMTP_FROM];
+  if (smtpValues.some(Boolean) && smtpValues.some((value) => !value)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, and SMTP_FROM must all be configured together.'
+    });
+  }
 });
 
 export const env = envSchema.parse(process.env);

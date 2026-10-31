@@ -9,6 +9,26 @@ export async function ensureSendersSeeded(userId?: string) {
     return;
   }
 
+  if (env.SMTP_HOST && env.SMTP_PORT && env.SMTP_USER && env.SMTP_PASS && env.SMTP_FROM) {
+    const existing = await prisma.sender.findFirst({
+      where: { userId: targetUserId, email: env.SMTP_FROM }
+    });
+    const senderData = {
+      email: env.SMTP_FROM,
+      smtpHost: env.SMTP_HOST,
+      smtpPort: env.SMTP_PORT,
+      smtpUser: env.SMTP_USER,
+      smtpPass: env.SMTP_PASS
+    };
+
+    if (existing) {
+      await prisma.sender.update({ where: { id: existing.id }, data: senderData });
+    } else {
+      await prisma.sender.create({ data: { userId: targetUserId, ...senderData } });
+    }
+    return;
+  }
+
   const count = await prisma.sender.count({ where: { userId: targetUserId } });
   if (count >= env.SENDER_COUNT) return;
 
@@ -30,8 +50,17 @@ export async function ensureSendersSeeded(userId?: string) {
 
 export async function getUserSenders(userId: string) {
   return prisma.sender.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'asc' }
+    where: { userId, ...(env.SMTP_FROM ? { email: env.SMTP_FROM } : {}) },
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      userId: true,
+      email: true,
+      smtpHost: true,
+      smtpPort: true,
+      smtpUser: true,
+      createdAt: true
+    }
   });
 }
 

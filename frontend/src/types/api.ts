@@ -12,7 +12,6 @@ export type Sender = {
   smtpPort: number;
   smtpUser: string;
   createdAt: string;
-  smtpPass?: string;
 };
 
 export type EmailItem = {
