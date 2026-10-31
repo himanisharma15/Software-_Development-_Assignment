@@ -50,6 +50,7 @@ export default function EmailsTable({ view, items, total, page, pageSize, isLoad
           {items.map((item) => {
           const recipient = item.toEmail ?? item.to ?? '—';
           const failed = item.status.toLowerCase() === 'failed';
+          const simulated = item.messageId?.startsWith('simulated:') ?? false;
           const timestamp = formatInboxDateTime(view === 'scheduled' ? item.scheduledAt : item.sentAt);
           return (
             <div key={item.id} className="group flex min-h-0 items-center gap-2 px-4 py-3 transition-colors hover:bg-row-hover">
@@ -59,7 +60,7 @@ export default function EmailsTable({ view, items, total, page, pageSize, isLoad
                   {view === 'scheduled' ? (
                     <Badge status="scheduled" icon={<svg aria-hidden="true" viewBox="0 0 24 24" className="h-3 w-3" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.5" /><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>}>{timestamp}</Badge>
                   ) : (
-                    <Badge status={failed ? 'failed' : 'sent'}>{failed ? 'Failed' : 'Sent'}</Badge>
+                    <Badge status={failed ? 'failed' : 'sent'}>{failed ? 'Failed' : simulated ? 'Demo sent' : 'Sent'}</Badge>
                   )}
                 </span>
                 <span className="flex min-w-0 items-center gap-1.5 overflow-hidden whitespace-nowrap">

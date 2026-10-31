@@ -24,6 +24,7 @@ export type EmailItem = {
   scheduledAt?: string | null;
   sentAt?: string | null;
   status: string;
+  messageId?: string | null;
   previewUrl?: string | null;
   sender?: {
     email?: string;

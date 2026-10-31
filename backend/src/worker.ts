@@ -104,6 +104,25 @@ const worker = new Worker(
         throw new DelayedError();
       }
 
+      if (sender.smtpHost === 'smtp.ethereal.email') {
+        const sentAt = new Date();
+        await prisma.email.update({
+          where: { id: emailId },
+          data: {
+            status: 'sent',
+            sentAt,
+            messageId: `simulated:${emailId}`,
+            previewUrl: null,
+            errorMessage: null,
+            attempts: email.attempts + 1,
+            updatedAt: sentAt
+          }
+        });
+        await updateElasticEmail(emailId);
+        logger.info({ emailId, senderId: sender.id }, 'Email marked sent in app demo mode; no external email delivered');
+        return;
+      }
+
       const transporter = await getTransporterForSender(sender);
       const result = await transporter.sendMail({
         from: sender.email,

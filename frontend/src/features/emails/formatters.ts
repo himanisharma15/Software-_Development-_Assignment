@@ -24,6 +24,7 @@ export function normalizeEmailItem(value: unknown): EmailItem {
     scheduledAt: asString(source.scheduledAt) ?? null,
     sentAt: asString(source.sentAt) ?? null,
     status: asString(source.status) ?? 'scheduled',
+    messageId: asString(source.messageId) ?? null,
     previewUrl: asString(source.previewUrl) ?? null,
     sender: sender ? { email: asString(sender.email) } : null
   };

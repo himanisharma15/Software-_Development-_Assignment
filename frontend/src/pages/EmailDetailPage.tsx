@@ -52,6 +52,7 @@ export default function EmailDetailPage() {
               <div><dt className="text-xs text-muted">{emailQuery.data.status === 'scheduled' || emailQuery.data.status === 'processing' ? 'Scheduled time' : 'Sent time'}</dt><dd className="mt-1 font-medium text-text">{formatLocalDateTime(emailQuery.data.status === 'scheduled' || emailQuery.data.status === 'processing' ? emailQuery.data.scheduledAt : emailQuery.data.sentAt)}</dd></div>
             </dl>
           </header>
+          {emailQuery.data.messageId?.startsWith('simulated:') && <p className="border-b border-border bg-warning-tint px-5 py-3 text-sm text-warning sm:px-7">Demo mode: this email is recorded in the app only. No external email was delivered.</p>}
           <div className="whitespace-pre-wrap p-5 text-sm leading-7 text-text sm:p-7">{emailQuery.data.body ?? 'No message body is available.'}</div>
           {emailQuery.data.previewUrl && <footer className="border-t border-border px-5 py-4 sm:px-7"><a href={emailQuery.data.previewUrl} target="_blank" rel="noreferrer" className="text-sm font-semibold text-primary hover:underline">Open Ethereal preview</a></footer>}
         </article>

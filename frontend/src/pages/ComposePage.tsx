@@ -91,10 +91,10 @@ export default function ComposePage() {
       formData.append('file', file);
       return (await api.post<{ message?: string }>('/emails/schedule', formData)).data;
     },
-    onSuccess: (data) => {
-      toast.success(data.message ?? 'Emails scheduled successfully');
+    onSuccess: (data, variables) => {
+      toast.success(variables.sendNow ? 'Email queued; it will appear in Sent shortly.' : data.message ?? 'Emails scheduled successfully');
       void queryClient.invalidateQueries({ queryKey: ['emails'] });
-      navigate('/dashboard?view=scheduled');
+      navigate(`/dashboard?view=${variables.sendNow ? 'sent' : 'scheduled'}`);
     },
     onError: (cause: unknown) => setError(errorMessage(cause))
   });
