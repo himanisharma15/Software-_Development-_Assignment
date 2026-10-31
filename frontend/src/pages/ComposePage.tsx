@@ -70,13 +70,13 @@ export default function ComposePage() {
   });
 
   const scheduleMutation = useMutation({
-    mutationFn: async (scheduledFor: string) => {
+    mutationFn: async ({ scheduledFor, sendNow }: { scheduledFor: string; sendNow?: boolean }) => {
       if (!subject.trim()) throw new Error('Add a subject before scheduling.');
       if (!body.trim()) throw new Error('Add a message before scheduling.');
       if (!file || emails.length === 0) throw new Error('Upload a list with valid email addresses.');
       const scheduledDate = new Date(scheduledFor);
       if (Number.isNaN(scheduledDate.getTime())) throw new Error('Choose a valid send time.');
-      if (scheduledDate.getTime() < Date.now()) throw new Error('Send time must be in the future.');
+      if (!sendNow && scheduledDate.getTime() < Date.now()) throw new Error('Send time must be in the future.');
       if (!Number.isFinite(delayBetweenMs) || delayBetweenMs < 0) throw new Error('Delay must be zero or greater.');
       if (!Number.isFinite(hourlyLimit) || hourlyLimit < 1) throw new Error('Hourly limit must be at least one.');
 
@@ -119,7 +119,7 @@ export default function ComposePage() {
     });
   };
 
-  const createScheduleNow = () => scheduleMutation.mutate(localDateTimeValue(new Date(Date.now() + 1000)));
+  const createScheduleNow = () => scheduleMutation.mutate({ scheduledFor: new Date().toISOString(), sendNow: true });
   const pickPreset = (hour: number) => setLaterTime(tomorrowAt(hour));
   const logoutNow = () => logout.mutate();
   const selectedSenderEmail = sendersQuery.data?.find((sender) => sender.id === selectedSender)?.email ?? sendersQuery.data?.[0]?.email ?? 'Select a sender';
@@ -202,7 +202,7 @@ export default function ComposePage() {
         <Input className="mt-4" label="Date and time" name="sendLaterTime" type="datetime-local" value={laterTime} onChange={(event) => setLaterTime(event.target.value)} />
         <div className="mt-5 flex justify-end gap-4 border-t border-border pt-4">
           <button type="button" className="px-2 py-2 text-sm text-muted hover:text-text" onClick={() => setLaterOpen(false)}>Cancel</button>
-          <Button variant="outline-primary" className="rounded-pill px-5" disabled={scheduleMutation.isPending || parseMutation.isPending} onClick={() => { setError(''); scheduleMutation.mutate(laterTime); setLaterOpen(false); }}>Done</Button>
+          <Button variant="outline-primary" className="rounded-pill px-5" disabled={scheduleMutation.isPending || parseMutation.isPending} onClick={() => { setError(''); scheduleMutation.mutate({ scheduledFor: laterTime }); setLaterOpen(false); }}>Done</Button>
         </div>
       </Popover>
     </DashboardLayout>
