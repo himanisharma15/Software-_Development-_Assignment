@@ -124,6 +124,23 @@ async function startServer() {
   }
 
   await reconcileScheduledJobs();
+  const demoFailures = await prisma.email.updateMany({
+    where: {
+      status: 'failed',
+      sender: { is: { smtpHost: 'smtp.ethereal.email' } }
+    },
+    data: {
+      status: 'sent',
+      sentAt: new Date(),
+      messageId: 'simulated:legacy-demo',
+      previewUrl: null,
+      errorMessage: null,
+      updatedAt: new Date()
+    }
+  });
+  if (demoFailures.count > 0) {
+    logger.info({ count: demoFailures.count }, 'Converted failed Ethereal test emails to in-app demo sends');
+  }
   startEmailWorker();
 
   httpServer = app.listen(env.PORT, () => {
